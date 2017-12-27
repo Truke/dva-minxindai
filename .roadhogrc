@@ -8,7 +8,7 @@
   },
   "proxy": {
     "/api": {
-      "target": "http://testapp.minxindai.com",
+      "target": "https://uatapp.minxindai.com",
       "changeOrigin": true,
       "pathRewrite": { "^/api" : "/investApp" }
     }

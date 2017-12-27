@@ -1,13 +1,21 @@
 import React, { Component } from 'react';
 import { Flex, List } from 'antd-mobile';
-import { fetchInvestsCondition } from '../../services'
+import styles from './Invests.less'
 
 const Item = List.Item;
-const options = [
+
+class Selectool extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      visible: false,
+      load: false,
+      cur: 0,
+      options: [
           {
               ed:0,
               data:[{
-                  name:'全部产品',
+                  name: '全部产品',
                   code: '0'
               }]
           },{
@@ -62,69 +70,72 @@ const options = [
                   code: '3'
               }]
           }  
-      ]
-class Selectool extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      visible: false,
-      cur: 0,
-      options: options
+      ],
     }
   }
-  componentWillMount () {
-    const { type } = this.props
-    fetchInvestsCondition({ type }).then(data => {
-      let array = options.map((ii, i) => {
-          if (i === 0) {
-            ii.data = data.data.data.list
-          }
-          return ii
-        })
+  componentWillMount(){
+    let { index, dispatch } = this.props
+    dispatch({
+      type: 'invests/condition',
+      payload: { index }
+    })
+  }
+  componentWillReceiveProps(props) {
+    let { curindex, index, data } = props
+    if (!this.state.load && data.length) {
+      let [...array] = this.state.options
+      array[0].data = data
       this.setState({
+        load: true,
         options: array
       })
-      console.log(type)
-    })
-  }
-  showModelHandler = (e) => {
-    if (e) e.stopPropagation()
-    this.setState({
-      visible: true
-    })
-  }
-  hideModelHandler = () => {
-    this.setState({
-      visible: false
-    })
+    }
+    if (curindex !== index) {
+      this.setState({
+        visible: false,
+      })
+    }
   }
   itemClick = (i) => {
-    let array = this.state.options.concat([])
+    let { dispatch } = this.props
+    let array = [...this.state.options]
     array[this.state.cur].ed = i
-    console.log(i,this.state.cur,array)
     this.setState({
+      visible: false,
       options: array
+    }, () => {
+      dispatch({
+        type: this.state.visible ? 'invests/showMask' : 'invests/hideMask'
+      })
+    })
+  }
+  optionClick = (i) => {
+    let { dispatch } = this.props
+    this.setState({
+      visible: i === this.state.cur ? !this.state.visible : true,
+      cur: i
+    }, () => {
+      dispatch({
+        type: this.state.visible ? 'invests/showMask' : 'invests/hideMask'
+      })
     })
   }
   render () {
     return (
-      <div>
-        <Flex style={{height: '.6rem'}}>
+      <div style={{position:'relative',zIndex: '2'}}>
+        <Flex style={{height: '.6rem',textAlign:'center'}}>
           {this.state.options.map((ii, i) => (
             <Flex.Item 
              key={i}
              onClick={() => {
-              console.log(this.state)
-              this.setState({
-                cur: i
-              })
+              this.optionClick(i)
              }}
             >
-              {ii.data[ii.ed].text || ii.data[ii.ed].name}
+             <span className={i === this.state.cur && this.state.visible ? styles.seled : ''}>{ii.data[ii.ed].text || ii.data[ii.ed].name}</span>
             </Flex.Item>
           ))}
         </Flex>
-        <List>
+        <List className={styles.selarea} style={{'display':this.state.visible ? 'block' : 'none'}}>
           {this.state.options[this.state.cur].data.map((ii, i) => (
             <Item
              key={i}
@@ -133,7 +144,7 @@ class Selectool extends Component {
               this.itemClick(i)
              }}
             >
-              {ii.name}
+              <span className={i === this.state.options[this.state.cur].ed ? styles.seled : ''}>{ii.name}</span>
             </Item>
           ))
           }

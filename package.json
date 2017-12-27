@@ -1,6 +1,6 @@
 {
-  "name": "dva-minxindai",
-  "public": true,
+  "name": "dva-example-user-dashboard",
+  "private": true,
   "scripts": {
     "start": "roadhog server",
     "build": "roadhog build",
