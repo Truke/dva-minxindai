@@ -65,7 +65,7 @@ function Home({ dispatch, banners, list, loading }) {
       <List className="my-list">
         {
           list.map((ii, i) => {
-            ii.annualRate = (ii.annualRate * 100).toFixed(2)
+            ii.annualRate2 = (ii.annualRate * 100).toFixed(2)
             return (
               <Item
                 key={i}
@@ -75,7 +75,7 @@ function Home({ dispatch, banners, list, loading }) {
                 {ii.highTitle}
                 <Brief>
                   <Flex>
-                    <Flex.Item><strong>{ii.annualRate}%</strong></Flex.Item>
+                    <Flex.Item><strong>{ii.annualRate2}%</strong></Flex.Item>
                     <Flex.Item>项目期限 {ii.loanPeriod}个月</Flex.Item>
                   </Flex>
                   <Flex>

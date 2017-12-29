@@ -1,70 +1,53 @@
-import { fetchInvestsCondition } from '../services'
+import { fetchInvestsCondition, fetchInvestsList } from '../services'
 
 export default {
   namespace: 'invests',
   state: {
     index: 1,
-    mask: false,
     tabs: [{
-      title: '新手专享',
-      type: 4,
+      title: '新手专区',
+      type: 3,
+      cond: 4,
       data: [],
-      lists: []
     }, {
       title: '优选标',
-      type: 0,
+      type: 1,
+      cond: 0,
       data: [],
-      lists: []
     }, {
       title: '优+系列',
-      type: 3,
+      type: 4,
+      cond: 3,
       data: [],
-      lists: []
-    }],
+    }, /*{
+      title: 'VIP专享',
+      type: 2,
+      cond: 1,
+      data: [],
+    }*/],
   },
   reducers: {
-    save(state, { payload: { tabs, index } }) {
-      return { ...state, tabs, index };
+    save(state, { payload: { tabs } }) {
+      return { ...state, tabs };
     },
     saveindex(state, { payload: { index } }) {
       return { ...state, index };
     },
-    showMask(state) {
-      state.mask = true
-      return { ...state }
-    },
-    hideMask(state) {
-      state.mask = false
-      return { ...state }
-    }
   },
   effects: {
-    *fetch({ payload }, { call, put, select }) {
-      const { index, tabs: array } = yield select(_=>_.invests)
-      for(let i = 0; i < array.length; i++) {
-        let { data } =  yield call(fetchInvestsCondition, {type: array[i].type})
-        array[i].options[0].data = data.data.list
-      }
-      // const { data } = yield call(fetchInvestsList);
-      yield put({
-        type: 'save',
-        payload: {
-          tabs: array,
-          index,
-        },
-      });
-    },
     *condition({ payload: { index } }, { call, put, select }) {
       const { tabs: array } = yield select(_=>_.invests)
-      let { data } = yield call(fetchInvestsCondition, {type: array[index].type})
+      let { data } = yield call(fetchInvestsCondition, {type: array[index].cond})
       array[index].data = data.data.list
       yield put({
         type: 'save',
         payload: {
           tabs: array,
-          index,
         },
       });
+    },
+    *fetch({ payload: { data } }, { call, put, select }) {
+      yield call(fetchInvestsList, data)
     },
   },
   subscriptions: {
