@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Flex, List, ListView } from 'antd-mobile';
 import styles from './Invests.less'
-import { fetchInvestsList } from '../../services'
+import { fetchInvestsCondition, fetchInvestsList } from '../../services'
 
 const Item = List.Item;
 const Brief = Item.Brief;
@@ -29,7 +29,6 @@ class Selectool extends Component {
     this.state = {
       visible: false,
       cur: 0,
-      load: false,
       options: [
           {
               ed:0,
@@ -97,30 +96,31 @@ class Selectool extends Component {
     }
   }
   componentWillMount() {
-    let { index, dispatch } = this.props
-    dispatch({
-      type: 'invests/condition',
-      payload: { index: index }
-    })
+    this.genCondition()
   }
   componentWillReceiveProps(props) {
-    let { curindex, index, data } = props
-
-    if (!this.state.load && data.length) {
-      let [...array] = this.state.options
-      array[0].data = data
-      this.setState({
-        load: true,
-        options: array
-      }, () => {
-        this.genData()
-      })
-    }
+    let { curindex, index } = props
     if (curindex !== index) {
       this.setState({
         visible: false,
       })
     }
+  }
+  genCondition = () => {
+    let { cond } = this.props
+    fetchInvestsCondition({
+      type: cond
+    }).then((res) => {
+      if (res.data.result === 1 && res.data.data.result === '1') {
+        let [...array] = this.state.options
+        array[0].data = res.data.data.list
+        this.setState({
+          options: array
+        }, () => {
+          this.genData()
+        })
+      }
+    })
   }
   genData = () => {
     let { type } = this.props
