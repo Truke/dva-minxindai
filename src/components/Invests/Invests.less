@@ -12,7 +12,7 @@
   max-height: 6rem;
   overflow: auto;
   position: absolute;
-  top:.6rem;
+  top:.8rem;
   width: 100%;
   z-index: 3;
   span{
@@ -21,6 +21,17 @@
 }
 .seled{
   color: #f50;
+}
+.seledI{
+  fill: #f50;
+}
+.link {
+  display: block;
+  &:hover{
+    .linkitem{
+      background-color: #ddd;
+    }
+  }
 }
 .itemtitle{
   font-size: .3rem;
@@ -33,4 +44,19 @@
   left: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.4);
+}
+.showInfo {
+  margin-top: .2rem;
+  display: flex;
+  align-items: center;
+  .progress {
+    margin-right: 5px;
+    width: 100%;
+  }
+  .progresstxt{
+    width: 1rem;
+    text-align: center;
+    font-size: .28rem;
+    color: #7193e9;
+  }
 }

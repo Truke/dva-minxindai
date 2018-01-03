@@ -1,18 +1,17 @@
 import React, { Component } from 'react';
-import { Flex, List, ListView } from 'antd-mobile';
+import ReactDOM from 'react-dom';
+import { Link } from 'dva/router';
+import { Flex, Icon, Progress, List, WhiteSpace, PullToRefresh, ListView } from 'antd-mobile';
 import styles from './Invests.less'
 import { fetchInvestsCondition, fetchInvestsList } from '../../services'
 
 const Item = List.Item;
 const Brief = Item.Brief;
-
-let pageNo = 1
-let pageSize = 10
+const pageSize = 10
 
 function MyBody(props) {
   return (
-    <div className="am-list-body my-body">
-      <span style={{ display: 'none' }}>you can custom body wrap element</span>
+    <div className="am-list-body2">
       {props.children}
     </div>
   );
@@ -25,10 +24,16 @@ class Selectool extends Component {
       rowHasChanged: (row1, row2) => row1 !== row2,
       sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
     })
-    this._data = []
-    this.state = {
+    
+    let s = JSON.parse(props.storage[props.index] || '{}')
+    this._scrollTop = s && s._scrollTop || 0
+    this._data = s && s._data || []
+    this.initialListSize = s && s._data && s._data.length > 10 ? s._data.length : 10
+    s && s.state && (s.state.dataSource = dataSource.cloneWithRows(this._data))
+    this.state = Object.assign({
       visible: false,
       cur: 0,
+      pageNo: 1,
       options: [
           {
               ed:0,
@@ -91,12 +96,40 @@ class Selectool extends Component {
       ],
       dataSource,
       totalCount: 0,
+      refreshing: true,
       isLoading: true,
       height: document.documentElement.clientHeight * 4.95 / 6,
+    },s && s.state || {})
+  }
+  componentWillMount () {
+    let { storage, index } = this.props
+    let s = JSON.parse(storage[index] || '{}')
+    this._isMounted = true
+    this.setState({
+      isLoading: false
+    })
+    if (!(s && s.state && !s.state.refreshing)) {
+      this.genCondition()
     }
   }
-  componentWillMount() {
-    this.genCondition()
+  componentWillUnmount () {
+    let { index, dispatch } = this.props
+    this._isMounted = false
+    this._scrollTop = ReactDOM.findDOMNode(this.lv).scrollTop
+    dispatch({
+      type: 'invests/savestorage',
+      payload: {
+        storage: JSON.stringify({
+                  _data: this._data,
+                  state: this.state,
+                  _scrollTop: this._scrollTop,
+                }),
+        index,
+      }
+    })
+  }
+  componentDidMount () {
+    this.lv.scrollTo(0, this._scrollTop)
   }
   componentWillReceiveProps(props) {
     let { curindex, index } = props
@@ -111,9 +144,9 @@ class Selectool extends Component {
     fetchInvestsCondition({
       type: cond
     }).then((res) => {
-      if (res.data.result === 1 && res.data.data.result === '1') {
+      if (this._isMounted && res.data.result === 1 && res.data.data.result === '1') {
         let [...array] = this.state.options
-        array[0].data = res.data.data.list
+        array[0].data = res.data.data.list || []
         this.setState({
           options: array
         }, () => {
@@ -127,23 +160,37 @@ class Selectool extends Component {
     fetchInvestsList({
       borrowType: type === 3 ? 2 : type,
       bType: this.state.options[0].data[this.state.options[0].ed].code,
-      rate: this.state.options[1].data[this.state.options[0].ed].code,
-      loanPeriod: this.state.options[2].data[this.state.options[0].ed].code,
-      backway: this.state.options[3].data[this.state.options[0].ed].code,
-      pageNo,
+      rate: this.state.options[1].data[this.state.options[1].ed].code,
+      loanPeriod: this.state.options[2].data[this.state.options[2].ed].code,
+      backway: this.state.options[3].data[this.state.options[3].ed].code,
+      pageNo: this.state.pageNo,
       pageSize,
       userId: '',
       isVip: type === 3 ? 2 : 0,
     }).then((res) => {
-      this.setState({ isLoading: false });
-      if (res.data.result === 1) {
-        this._data = this._data.concat(res.data.data.list);
-        this.setState({
-          isLoading: false,
-          dataSource: this.state.dataSource.cloneWithRows(this._data),
-          totalCount: res.data.data.totalCount,
-        })
+      if (this._isMounted) {
+        this.setState({ refreshing: false, isLoading: false });
+        if (res.data.result === 1) {
+          this._data = this._data.concat(res.data.data.list);
+          this.setState({
+            refreshing: false,
+            isLoading: false,
+            dataSource: this.state.dataSource.cloneWithRows(this._data),
+            totalCount: res.data.data.totalCount,
+          })
+        }
       }
+    })
+  }
+  onRefresh = () => {
+    this._data = []
+    this.setState({ 
+      pageNo: 1,
+      totalCount: 0,
+      refreshing: true, 
+      isLoading: true,
+    }, () => {
+      this.genData()
     })
   }
   onEndReached = (event) => {
@@ -151,7 +198,12 @@ class Selectool extends Component {
       return;
     }
     if (this.state.dataSource._cachedRowCount < this.state.totalCount) {
-      this.genData(++pageNo);
+      this.setState({
+        pageNo: this.state.pageNo + 1,
+        isLoading: true,
+      }, () => {
+        this.genData()
+      })
     }
   }
   itemClick = (i) => {
@@ -161,9 +213,14 @@ class Selectool extends Component {
       visible: false,
       options: array
     }, () => {
+      this.lv.scrollTo(0, 0)
       this._data = []
-      pageNo = 1
-      this.genData()
+      this.setState({
+        pageNo: 1,
+        totalCount: 0
+      }, () => {
+        this.genData()
+      })
     })
   }
   optionClick = (i) => {
@@ -174,28 +231,59 @@ class Selectool extends Component {
   }
   
   render () {
+    const Cell = (props) => {
+      let str = ''
+      switch(props.status){
+        case 2: 
+          str = `${props.amount.toLocaleString()}<br/>可认购金额（元）`
+        break
+        case 6:
+          str = `<img src="src/assets/c-icon_ymb.png" style="width:60px;height:auto" alt="已满标" />` 
+        break
+        case 7:
+          str = `<img src="src/assets/c-icon_hkz.png" style="width:60px;height:auto" alt="还款中" />`
+        break
+        case 9:
+          str = `<img src="src/assets/c-icon_ywc.png" style="width:60px;height:auto" alt="已完成" />`
+        break
+        default: 
+          str = ''
+      }
+      return <div style={{textAlign:'right'}} dangerouslySetInnerHTML={{__html: str}} />;
+    }
     const row = (rowData, sectionID, rowID) => {
+      if (!rowData) return ''
       rowData.annualRate2 = (rowData.annualRate * 100).toFixed(2)
       return (
-        <Item
-          key={rowID}
-          multipleLine
-          onClick={() => {}}
-        >
-          <div className={styles.itemtitle}>{rowData.title}</div>
-          <Flex style={{textAlign: 'center'}}>
-            <Flex.Item><strong>{rowData.annualRate2}%</strong><br/><Brief>协议年化利率</Brief></Flex.Item>
-            <Flex.Item>{rowData.loanPeriod}个月<br/><Brief>期限</Brief></Flex.Item>
-            <Flex.Item>
-              {rowData.status}
-            </Flex.Item>
-          </Flex>
-        </Item>
+        <Link className={styles.link} to={'/invests/'+rowData.borrowId}>
+          <Item
+            key={rowID}
+            multipleLine
+            className={styles.linkitem}
+            onClick={() => {}}
+          >          
+            <Brief style={{fontSize:'.26rem'}}>
+              <div className={styles.itemtitle}>{rowData.title}</div>
+              <Flex style={{textAlign: 'center'}}>
+                <Flex.Item style={{textAlign: 'left'}}><span style={{color:'#f74c31',lineHeight:'.75',paddingLeft:'.24rem'}}><big style={{fontSize:'.4rem'}}>{rowData.annualRate2}</big>%</span><br/>协议年化利率</Flex.Item>
+                <Flex.Item>{rowData.loanPeriod}个月<br/>期限</Flex.Item>
+                <Flex.Item>
+                  <Cell status={rowData.status} amount={rowData.canInvestAmount} />
+                </Flex.Item>
+              </Flex>
+            </Brief>
+            {rowData.investPercentInt<100?<div className={styles.showInfo}>
+              <div className={styles.progress}><Progress percent={rowData.investPercentInt} position="normal" /></div>
+              <div className={styles.progresstxt}>{rowData.investPercentInt}%</div>
+            </div>:''}
+          </Item>
+          <WhiteSpace size="md" />
+        </Link>
       );
     };
     return (
       <div className={styles.selcont} style={{position:'relative',zIndex: '2'}}>
-        <Flex style={{height: '.6rem',textAlign:'center'}}>
+        <Flex style={{height: '.8rem',textAlign:'center'}}>
           {this.state.options.map((ii, i) => (
             <Flex.Item 
              key={i}
@@ -203,7 +291,8 @@ class Selectool extends Component {
               this.optionClick(i)
              }}
             >
-             <span className={i === this.state.cur && this.state.visible ? styles.seled : ''}>{ii.data[ii.ed].text || ii.data[ii.ed].name}</span>
+             <span className={i === this.state.cur && this.state.visible ? styles.seled : ''} style={{verticalAlign:'middle'}}>{ii.data[ii.ed].text || ii.data[ii.ed].name}</span>
+             <Icon className={i === this.state.cur && this.state.visible ? styles.seledI : ''} type="down" size="xxs" style={{verticalAlign:'middle'}} />
             </Flex.Item>
           ))}
         </Flex>
@@ -224,9 +313,9 @@ class Selectool extends Component {
         <ListView
           ref={el => this.lv = el}
           dataSource={this.state.dataSource}
-          initialListSize={10}
-          renderFooter={() => (<div style={{ padding: 10, textAlign: 'center' }}>
-            {this.state.isLoading ? '拼命加载中...' : (this._data.length < this.state.totalCount ? '拼命加载中...' : '没有更多数据啦~')}
+          initialListSize={this.initialListSize}
+          renderFooter={() => (<div style={{ padding: 5, textAlign: 'center' }}>
+            {(this.state.refreshing || this.state.isLoading || this._data.length < this.state.totalCount ? '拼命加载中...' : '没有更多数据啦~')}
           </div>)}
           renderBodyComponent={() => <MyBody />}
           renderRow={row}
@@ -237,6 +326,10 @@ class Selectool extends Component {
           pageSize={5}
           onEndReached={this.onEndReached}
           onEndReachedThreshold={200}
+          pullToRefresh={<PullToRefresh
+            refreshing={this.state.refreshing}
+            onRefresh={this.onRefresh}
+          />}
         />
         <div className={styles.mask} style={{'display': this.state.visible ? 'block' : 'none'}} onClick={()=>{this.setState({visible:false})}}></div>
       </div>

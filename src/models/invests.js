@@ -20,6 +20,7 @@ export default {
       type: 2,
       cond: 1,
     }*/],
+    storage: [],
   },
   reducers: {
     save(state, { payload: { tabs } }) {
@@ -28,6 +29,10 @@ export default {
     saveindex(state, { payload: { index } }) {
       return { ...state, index };
     },
+    savestorage(state, { payload: { storage, index } }) {
+      state.storage[index] = storage
+      return { ...state };
+    }
   },
   effects: {
   },

@@ -4,7 +4,7 @@ import { Tabs } from 'antd-mobile'
 import styles from './Invests.less';
 import SelectoolComponent from './Selectool'
 
-function Invests({ dispatch, tabs, index }) {
+function Invests({ dispatch, tabs, index, storage }) {
 
   function tabClick(tab, i) {
     if (i !== index) {
@@ -20,14 +20,13 @@ function Invests({ dispatch, tabs, index }) {
        initialPage={index}
        swipeable={false}
        onTabClick={(tab, i) => { 
-        console.log(tab, '** ',i)
         tabClick(tab, i)
        }}
        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}
       >
         {tabs.map((ii, i) => (
           <div className={styles.cont} key={i}>
-            <SelectoolComponent {...ii} curindex={index} index={i} dispatch={dispatch}> 
+            <SelectoolComponent {...ii} storage={storage} curindex={index} index={i} dispatch={dispatch}> 
             </SelectoolComponent>
           </div>
         ))}
@@ -37,10 +36,11 @@ function Invests({ dispatch, tabs, index }) {
 }
 
 function mapStateToProps(state) {
-  const { tabs, index } = state.invests;
+  const { tabs, index, storage } = state.invests;
   return {
     tabs,
     index,
+    storage,
   };
 }
 
