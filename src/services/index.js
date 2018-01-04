@@ -1,19 +1,27 @@
-import request from '../utils/request';
+import request from '../utils/request'
 import api from '../utils/api'
 
-
-export function fetchHomeBanners(data) {
+//首页banner
+export function banner(data) {
   return request(api.banner, data);
 }
-
-export function fetchHomeList(data) {
+//首页推荐标
+export function newFindHomePageRecommand(data) {
   return request(api.newFindHomePageRecommand, data);
 }
-
-export function fetchInvestsCondition(data) {
+//投资页类目
+export function findConditionList(data) {
   return request(api.findConditionList, data)
 }
-
-export function fetchInvestsList(data) {
+//投资列表
+export function findBorrowListPag(data) {
   return request(api.findBorrowListPag, data)
+}
+//存管标标状态
+export function checkBorrowStatus(data) {
+  return request(api.checkBorrowStatus, data)
+}
+//非存管标标状态
+export function checkBorrowSetStatus(data) {
+  return request(api.checkBorrowSetStatus, data)
 }

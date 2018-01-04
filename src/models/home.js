@@ -1,4 +1,4 @@
-import { fetchHomeBanners, fetchHomeList } from '../services'
+import { banner, newFindHomePageRecommand } from '../services'
 
 export default {
   namespace: 'home',
@@ -14,10 +14,10 @@ export default {
   effects: {
     *fetch({ payload }, { call, put, select }) {
       // const { locationQuery } = yield select(_ => _.app)
-      const { data } = yield call(fetchHomeBanners, {
+      const { data } = yield call(banner, {
         nodeId: 233
       });
-      const res = yield call(fetchHomeList, {
+      const res = yield call(newFindHomePageRecommand, {
         isVip: 0,
         userId: ''
       })

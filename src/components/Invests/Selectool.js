@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Link } from 'dva/router';
-import { Flex, Icon, Progress, List, WhiteSpace, PullToRefresh, ListView } from 'antd-mobile';
+import { Flex, Icon, Progress, List, PullToRefresh, ListView } from 'antd-mobile';
 import styles from './Invests.less'
-import { fetchInvestsCondition, fetchInvestsList } from '../../services'
+import { findConditionList, findBorrowListPag } from '../../services'
 
 const Item = List.Item;
 const Brief = Item.Brief;
@@ -141,7 +140,7 @@ class Selectool extends Component {
   }
   genCondition = () => {
     let { cond } = this.props
-    fetchInvestsCondition({
+    findConditionList({
       type: cond
     }).then((res) => {
       if (this._isMounted && res.data.result === 1 && res.data.data.result === '1') {
@@ -157,7 +156,7 @@ class Selectool extends Component {
   }
   genData = () => {
     let { type } = this.props
-    fetchInvestsList({
+    findBorrowListPag({
       borrowType: type === 3 ? 2 : type,
       bType: this.state.options[0].data[this.state.options[0].ed].code,
       rate: this.state.options[1].data[this.state.options[1].ed].code,
@@ -231,6 +230,7 @@ class Selectool extends Component {
   }
   
   render () {
+    let { type, dispatch } = this.props
     const Cell = (props) => {
       let str = ''
       switch(props.status){
@@ -249,36 +249,42 @@ class Selectool extends Component {
         default: 
           str = ''
       }
-      return <div style={{textAlign:'right'}} dangerouslySetInnerHTML={{__html: str}} />;
+      return (<div style={{textAlign:'right'}} dangerouslySetInnerHTML={{__html: str}} />);
     }
     const row = (rowData, sectionID, rowID) => {
       if (!rowData) return ''
       rowData.annualRate2 = (rowData.annualRate * 100).toFixed(2)
       return (
-        <Link className={styles.link} to={'/invests/'+rowData.borrowId}>
-          <Item
-            key={rowID}
-            multipleLine
-            className={styles.linkitem}
-            onClick={() => {}}
-          >          
-            <Brief style={{fontSize:'.26rem'}}>
-              <div className={styles.itemtitle}>{rowData.title}</div>
-              <Flex style={{textAlign: 'center'}}>
-                <Flex.Item style={{textAlign: 'left'}}><span style={{color:'#f74c31',lineHeight:'.75',paddingLeft:'.24rem'}}><big style={{fontSize:'.4rem'}}>{rowData.annualRate2}</big>%</span><br/>协议年化利率</Flex.Item>
-                <Flex.Item>{rowData.loanPeriod}个月<br/>期限</Flex.Item>
-                <Flex.Item>
-                  <Cell status={rowData.status} amount={rowData.canInvestAmount} />
-                </Flex.Item>
-              </Flex>
-            </Brief>
-            {rowData.investPercentInt<100?<div className={styles.showInfo}>
-              <div className={styles.progress}><Progress percent={rowData.investPercentInt} position="normal" /></div>
-              <div className={styles.progresstxt}>{rowData.investPercentInt}%</div>
-            </div>:''}
-          </Item>
-          <WhiteSpace size="md" />
-        </Link>
+        <Item
+          key={rowID}
+          multipleLine
+          className={styles.linkitem}
+          onClick={() => {
+            dispatch({
+              type: 'invests/setborrow',
+              payload: {
+                borrowType: type,
+                borrowId: rowData.borrowId,
+                depositoryId: rowData.depositoryId || 0
+              }
+            })
+          }}
+        >          
+          <Brief style={{fontSize:'.26rem'}}>
+            <div className={styles.itemtitle}>{rowData.title}</div>
+            <Flex style={{textAlign: 'center'}}>
+              <Flex.Item style={{textAlign: 'left'}}><span style={{color:'#f74c31',lineHeight:'.75',paddingLeft:'.24rem'}}><big style={{fontSize:'.4rem'}}>{rowData.annualRate2}</big>%</span><br/>协议年化利率</Flex.Item>
+              <Flex.Item>{rowData.loanPeriod}个月<br/>期限</Flex.Item>
+              <Flex.Item>
+                <Cell status={rowData.status} amount={rowData.canInvestAmount} />
+              </Flex.Item>
+            </Flex>
+          </Brief>
+          {rowData.investPercentInt<100?<div className={styles.showInfo}>
+            <div className={styles.progress}><Progress percent={rowData.investPercentInt} position="normal" /></div>
+            <div className={styles.progresstxt}>{rowData.investPercentInt}%</div>
+          </div>:''}
+        </Item>
       );
     };
     return (

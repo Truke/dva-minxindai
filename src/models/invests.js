@@ -1,3 +1,4 @@
+import { routerRedux } from 'dva/router'
 
 export default {
   namespace: 'invests',
@@ -15,11 +16,7 @@ export default {
       title: '优+系列',
       type: 4,
       cond: 3,
-    }, /*{
-      title: 'VIP专享',
-      type: 2,
-      cond: 1,
-    }*/],
+    }],
     storage: [],
   },
   reducers: {
@@ -35,6 +32,17 @@ export default {
     }
   },
   effects: {
+    *setborrow({ payload: { borrowType, borrowId, depositoryId } }, { put }) {
+      yield put({
+        type: 'borrow/saveborrow',
+        payload: {
+          borrowType, 
+          borrowId, 
+          depositoryId,
+        }
+      })
+      yield put(routerRedux.push('/borrow'))
+    },
   },
   subscriptions: {
   },

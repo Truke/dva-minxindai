@@ -1,7 +1,6 @@
 import React from 'react';
 import { Router, Switch, Route } from 'dva/router';
 import dynamic from 'dva/dynamic';
-import InvestDetail from './routes/InvestDetail'
 
 function RouterConfig({ history, app }) {
   const IndexPage = dynamic({
@@ -20,20 +19,20 @@ function RouterConfig({ history, app }) {
     component: () => import('./routes/Invests'),
   });
 
-  // const InvestDetail = dynamic({
-  //   app,
-  //   models: () => [
-  //     import('./models/investdetail'),
-  //   ],
-  //   component: () => import('./routes/InvestDetail'),
-  // });
+  const Borrow = dynamic({
+    app,
+    models: () => [
+      import('./models/borrow'),
+    ],
+    component: () => import('./routes/Borrow'),
+  });
 
   return (
     <Router history={history}>
       <Switch>
         <Route exact path="/" component={IndexPage} />
         <Route exact path="/invests" component={Invests} />
-        <Route exact path="/invests/:id" component={InvestDetail} />
+        <Route exact path="/borrow" component={Borrow} />
       </Switch>
     </Router>
   );

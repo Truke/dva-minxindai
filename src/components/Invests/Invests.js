@@ -5,7 +5,7 @@ import styles from './Invests.less';
 import SelectoolComponent from './Selectool'
 
 function Invests({ dispatch, tabs, index, storage }) {
-
+  
   function tabClick(tab, i) {
     if (i !== index) {
       dispatch({
