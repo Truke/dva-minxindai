@@ -16,12 +16,31 @@ function MyBody(props) {
   );
 }
 
+function Cell(props) {
+  let str = ''
+  switch(props.status){
+    case 2: 
+      str = `${props.amount.toLocaleString()}<br/>可认购金额（元）`
+    break
+    case 6:
+      str = `<img src="src/assets/c-icon_ymb.png" style="width:60px;height:auto" alt="已满标" />` 
+    break
+    case 7:
+      str = `<img src="src/assets/c-icon_hkz.png" style="width:60px;height:auto" alt="还款中" />`
+    break
+    case 9:
+      str = `<img src="src/assets/c-icon_ywc.png" style="width:60px;height:auto" alt="已完成" />`
+    break
+    default: 
+      str = ''
+  }
+  return (<div style={{textAlign:'right'}} dangerouslySetInnerHTML={{__html: str}} />);
+}
 class Selectool extends Component {
   constructor(props) {
     super(props)
     const dataSource = new ListView.DataSource({
       rowHasChanged: (row1, row2) => row1 !== row2,
-      sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
     })
     
     let s = JSON.parse(props.storage[props.index] || '{}')
@@ -129,6 +148,9 @@ class Selectool extends Component {
   }
   componentDidMount () {
     this.lv.scrollTo(0, this._scrollTop)
+    //这儿很奇怪，ListView重新渲染的时候，第一次点击无效，第二次点击才有效
+    //
+    this.lv && document.querySelector('.am-list-body2').click()
   }
   componentWillReceiveProps(props) {
     let { curindex, index } = props
@@ -210,54 +232,33 @@ class Selectool extends Component {
     array[this.state.cur].ed = i
     this.setState({
       visible: false,
-      options: array
+      options: array,
+      pageNo: 1,
+      totalCount: 0
     }, () => {
       this.lv.scrollTo(0, 0)
       this._data = []
-      this.setState({
-        pageNo: 1,
-        totalCount: 0
-      }, () => {
-        this.genData()
-      })
+      this.genData()
     })
   }
   optionClick = (i) => {
+    let cur = this.state.cur
+    let visible = this.state.visible
     this.setState({
-      visible: i === this.state.cur ? !this.state.visible : true,
+      visible: i === cur ? !visible : true,
       cur: i
     })
   }
   
   render () {
+    this.lv && document.querySelector('.am-list-body2').click()
     let { type, dispatch } = this.props
-    const Cell = (props) => {
-      let str = ''
-      switch(props.status){
-        case 2: 
-          str = `${props.amount.toLocaleString()}<br/>可认购金额（元）`
-        break
-        case 6:
-          str = `<img src="src/assets/c-icon_ymb.png" style="width:60px;height:auto" alt="已满标" />` 
-        break
-        case 7:
-          str = `<img src="src/assets/c-icon_hkz.png" style="width:60px;height:auto" alt="还款中" />`
-        break
-        case 9:
-          str = `<img src="src/assets/c-icon_ywc.png" style="width:60px;height:auto" alt="已完成" />`
-        break
-        default: 
-          str = ''
-      }
-      return (<div style={{textAlign:'right'}} dangerouslySetInnerHTML={{__html: str}} />);
-    }
     const row = (rowData, sectionID, rowID) => {
       if (!rowData) return ''
       rowData.annualRate2 = (rowData.annualRate * 100).toFixed(2)
       return (
         <Item
           key={rowID}
-          multipleLine
           className={styles.linkitem}
           onClick={() => {
             dispatch({
@@ -265,7 +266,7 @@ class Selectool extends Component {
               payload: {
                 borrowType: type,
                 borrowId: rowData.borrowId,
-                depositoryId: rowData.depositoryId || 0
+                depositoryId: rowData.depositoryId || '0'
               }
             })
           }}
