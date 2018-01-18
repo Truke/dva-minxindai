@@ -6,6 +6,7 @@ import { NavBar,Icon, PullToRefresh, Button } from 'antd-mobile';
 // import classnames from 'classnames'
 import styles from './Borrow.less';
 import OnePageComponent from '../components/Borrow/OnePage'
+import TwoPageComponent from '../components/Borrow/TwoPage'
 
 function Borrow({dispatch, borrowType, borrowId, depositoryId, borrowStatus}) {
   let one,two
@@ -14,6 +15,15 @@ function Borrow({dispatch, borrowType, borrowId, depositoryId, borrowStatus}) {
   }
   function statusText (v) {
     return {2: '立即抢投', 4: '已流标', 6: '已满标', 7: '还款中', 9: '已完成'}[v]
+  }
+  function tabstitles (t) {
+    let tabs = []
+    tabs[0] = {title: '基本信息'}
+    tabs[1] = {title: '投资记录'}
+    if (/1|4/.test(t)) {
+      tabs.splice(1, 0, {title: '借款人信息'})
+    }
+    return tabs 
   }
   function onOneRefresh(){
     ReactDOM.findDOMNode(one).classList.add('animated')
@@ -50,16 +60,17 @@ function Borrow({dispatch, borrowType, borrowId, depositoryId, borrowStatus}) {
         >
           <OnePageComponent />
         </PullToRefresh>
-        <PullToRefresh
-         ref={el => two = el}
-         className={styles.page}
-         style={{backgroundColor: 'blue',zIndex:'-1'}}
-         direction={"down"}
-         indicator={{activate:' ',deactivate: ' ',finish:' '}}
-         onRefresh={onTwoRefresh}
+        <div
+          ref={el => two = el}
+          className={styles.page}
+          style={{zIndex:'-1'}}
         >
-          {(()=>{return 'd'})()}
-        </PullToRefresh>
+          <TwoPageComponent 
+           tabslist={tabstitles(borrowType)} 
+           onTwoRefresh={onTwoRefresh}
+          />
+        </div>
+        
       </div>
       <Button
       >{statusText(borrowStatus)}

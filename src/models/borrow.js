@@ -32,14 +32,11 @@ export default {
   effects: {
     *fetch({ payload }, { call, put, select }) {
       const { borrowType, borrowId, depositoryId } = yield select(_ => _.borrow)
-      let d = {}, res = {}
-      d[(/1|4/.test(borrowType) ? 'borrowId' : 'borrowSetId')] = borrowId
+      const isFilter = () => /1|4/.test(borrowType)
+      let d = {}
+      d[(isFilter ? 'borrowId' : 'borrowSetId')] = borrowId
       let e = Object.assign( d, depositoryId === '0' ? {} : {depositoryId})
-      if (/1|4/.test(borrowType)) {
-        res = yield call(checkBorrowStatus, e)
-      } else {
-        res = yield call(checkBorrowSetStatus, e)
-      }
+      let res = yield call(isFilter ? checkBorrowStatus : checkBorrowSetStatus, e)
       if (res.data.result === 1) {
         yield put({
           type: 'savestatus',
@@ -47,7 +44,7 @@ export default {
             borrowStatus: res.data.data.status
           },
         });
-        let res2 = yield call(findBorrowInfo, e)
+        let res2 = yield call(isFilter ? findBorrowInfo : findBorrowSetInfo, e)
         if (res2.data.result === 1) {
           yield put({
             type: 'saveinfo',

@@ -18,7 +18,6 @@ class MoneyKeyForm extends React.Component {
     })
   }
   render() {
-    const { getFieldProps } = this.props.form;
     const { type } = this.state;
     return (
       <div style={{width:'70%',margin:'0 auto'}}>

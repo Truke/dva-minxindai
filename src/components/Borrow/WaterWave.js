@@ -27,6 +27,13 @@ class WaterWave extends PureComponent {
     window.removeEventListener('resize', this.resize);
   }
 
+  componentWillReceiveProps() {
+    console.log('-----',this.props.percent)
+    
+    this.renderChart();
+    this.resize();
+  }
+
   resize = () => {
     const { height } = this.props;
     const { offsetWidth } = this.root.parentNode;
@@ -37,6 +44,7 @@ class WaterWave extends PureComponent {
 
   renderChart() {
     const { percent, color = '#fff' } = this.props;
+    console.log(percent)
     const data = percent / 100;
     const self = this;
 
