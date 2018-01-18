@@ -2,7 +2,7 @@ import dva from 'dva';
 import createHistory from 'history/createBrowserHistory';
 import createLoading from 'dva-loading';
 import { Toast } from 'antd-mobile';
-import './index.css';
+import './index.less';
 
 const ERROR_MSG_DURATION = 3; // 3 秒
 

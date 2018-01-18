@@ -25,3 +25,12 @@ export function checkBorrowStatus(data) {
 export function checkBorrowSetStatus(data) {
   return request(api.checkBorrowSetStatus, data)
 }
+//存管标详情
+export function findBorrowInfo(data) {
+  return request(api.findBorrowInfo, data)
+}
+//非存管标详情
+export function findBorrowSetInfo(data) {
+  return request(api.findBorrowSetInfo, data)
+}
+

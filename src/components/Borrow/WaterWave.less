@@ -1,0 +1,31 @@
+.waterWave {
+  display: inline-block;
+  background-color: #ffe8c0;
+  border-radius: 50%;
+  position: relative;
+  transform-origin: center;
+  .text {
+    position: absolute;
+    left: 0;
+    top: 32px;
+    text-align: center;
+    width: 100%;
+    span {
+      color: red;
+      font-size: 14px;
+      line-height: 22px;
+      font-family: arial;
+    }
+    h4 {
+      color: #fff;
+      line-height: 32px;
+      font-size: .48rem;
+      font-weight: normal;
+      font-family: arial;
+    }
+  }
+  .waterWaveCanvasWrapper {
+    transform: scale(.5);
+    transform-origin: 0 0;
+  }
+}

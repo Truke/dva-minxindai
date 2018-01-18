@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Flex, Icon, Progress, List, PullToRefresh, ListView } from 'antd-mobile';
+import { Flex, Icon, Progress, List,WhiteSpace, PullToRefresh, ListView } from 'antd-mobile';
 import styles from './Invests.less'
 import { findConditionList, findBorrowListPag } from '../../services'
 
@@ -257,6 +257,7 @@ class Selectool extends Component {
       if (!rowData) return ''
       rowData.annualRate2 = (rowData.annualRate * 100).toFixed(2)
       return (
+        <div>
         <Item
           key={rowID}
           className={styles.linkitem}
@@ -286,6 +287,8 @@ class Selectool extends Component {
             <div className={styles.progresstxt}>{rowData.investPercentInt}%</div>
           </div>:''}
         </Item>
+        <WhiteSpace size="lg" />
+        </div>
       );
     };
     return (

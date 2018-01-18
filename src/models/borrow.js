@@ -1,4 +1,9 @@
-import { checkBorrowStatus, checkBorrowSetStatus } from '../services'
+import { 
+  checkBorrowStatus, 
+  checkBorrowSetStatus,
+  findBorrowInfo,
+  findBorrowSetInfo,
+} from '../services'
 
 export default {
   namespace: 'borrow',
@@ -7,6 +12,11 @@ export default {
     borrowId: '',
     depositoryId: '0',
     borrowStatus: '',
+    info: {
+      annualRate: '0',
+      loanPeriod: '',
+      loanPeriodType: '',
+    },
   },
   reducers: {
     saveborrow(state, { payload: { borrowType, borrowId, depositoryId } } ) {
@@ -14,6 +24,9 @@ export default {
     },
     savestatus(state, { payload: { borrowStatus } }) {
       return {...state, borrowStatus}
+    },
+    saveinfo(state, { payload: { info } }) {
+      return {...state, info}
     }
   },
   effects: {
@@ -34,8 +47,20 @@ export default {
             borrowStatus: res.data.data.status
           },
         });
+        let res2 = yield call(findBorrowInfo, e)
+        if (res2.data.result === 1) {
+          yield put({
+            type: 'saveinfo',
+            payload: {
+              info: res2.data.data
+            }
+          })
+        }
       }
     },
+    *willmoney({payload: {amount}}, {put, call, select}) {
+
+    }
   },
   subscriptions: {
     setup({ dispatch, history }) {
